@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SDS — ใบลา (Leave Request)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #202842;
+    --oxford: #323c60;
+    --orange: #cd5f2a;
+    --tan: #bea27f;
+    --cream: #e5d8c4;
+    --cream-light: #f7f4ef;
+    --bg: #f0ece4;
+    --text: #202842;
+    --muted: #6b6456;
+    --border: #ddd7cc;
+    --green: #2a7a4b;
+    --green-light: #e6f4ec;
+    --red: #c0392b;
+    --red-light: #fdf0ee;
+  }
+
+  body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* TOP BAR */
+  #topbar {
+    background: var(--navy); padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-icon {
+    width: 38px; height: 38px; background: var(--orange); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800; color: white; flex-shrink: 0;
+  }
+  .brand-name { color: white; font-weight: 700; font-size: 16px; line-height: 1.2; }
+  .brand-sub { color: var(--tan); font-size: 11px; }
+  .topbar-actions { display: flex; gap: 10px; }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 600;
+    padding: 9px 22px; border-radius: 7px; cursor: pointer; border: none;
+    transition: all 0.18s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--oxford); color: white; }
+  .btn-primary:hover { background: #404e7a; }
+  .btn-accent { background: var(--orange); color: white; }
+  .btn-accent:hover { background: #b55224; }
+  .btn-ghost { background: transparent; border: 1.5px solid rgba(229,216,196,0.5); color: var(--cream); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+
+  /* FORM */
+  #form-view { max-width: 760px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  .card {
+    background: white; border-radius: 12px; padding: 24px 28px;
+    margin-bottom: 20px; border: 1px solid var(--border);
+    box-shadow: 0 1px 6px rgba(32,40,66,0.06);
+  }
+  .card-title {
+    font-size: 11px; font-weight: 700; color: var(--orange);
+    text-transform: uppercase; letter-spacing: 1.2px;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1.5px solid var(--cream);
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .span-2 { grid-column: span 2; }
+
+  label.lbl {
+    display: block; font-size: 11px; font-weight: 700; color: var(--oxford);
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 5px;
+  }
+  input, select, textarea {
+    font-family: 'Sarabun', sans-serif; font-size: 14px; color: var(--text);
+    width: 100%; padding: 9px 13px; border: 1.5px solid var(--border);
+    border-radius: 7px; background: white; transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(205,95,42,0.12);
+  }
+  input[readonly] { background: var(--cream-light); cursor: default; }
+  input.doc-num { font-weight: 800; color: var(--orange); font-size: 15px; }
+
+  /* LEAVE TYPE CARDS */
+  .leave-type-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    margin-bottom: 4px;
+  }
+  .leave-type-card {
+    border: 2px solid var(--border); border-radius: 10px;
+    padding: 14px 10px; text-align: center; cursor: pointer;
+    transition: all 0.18s; background: white;
+  }
+  .leave-type-card:hover { border-color: var(--tan); background: var(--cream-light); }
+  .leave-type-card.selected { border-color: var(--orange); background: #fef4ee; }
+  .leave-type-card .icon { font-size: 24px; margin-bottom: 6px; }
+  .leave-type-card .type-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .leave-type-card .type-quota { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .leave-type-card.selected .type-name { color: var(--orange); }
+
+  /* DAY COUNT BADGE */
+  .day-count-badge {
+    background: var(--navy); color: white;
+    border-radius: 10px; padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 16px;
+  }
+  .day-count-label { font-size: 13px; color: var(--tan); }
+  .day-count-num { font-size: 28px; font-weight: 800; color: white; }
+  .day-count-unit { font-size: 13px; color: var(--cream); }
+
+  /* HALF DAY TOGGLE */
+  .half-day-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--cream-light); border-radius: 8px;
+    padding: 12px 16px; margin-top: 12px;
+  }
+  .toggle-switch {
+    position: relative; width: 44px; height: 24px; flex-shrink: 0;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: #ccc; border-radius: 24px; transition: 0.3s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.3s;
+  }
+  input:checked + .toggle-slider { background: var(--orange); }
+  input:checked + .toggle-slider:before { transform: translateX(20px); }
+  .half-day-label { font-size: 13px; font-weight: 600; color: var(--navy); }
+
+  /* PRINT */
+  #print-view { display: none; }
+  @media print {
+    #topbar, #form-view, .no-print { display: none !important; }
+    #print-view { display: block !important; margin: 0; padding: 0; }
+    body { background: white !important; }
+    .po-doc { box-shadow: none !important; border-radius: 0 !important; }
+  }
+  #print-view.visible {
+    display: block; max-width: 760px; margin: 0 auto; padding: 28px 20px 60px;
+  }
+  .po-doc { background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(32,40,66,0.12); overflow: hidden; }
+
+  .doc-header {
+    background: var(--navy); padding: 28px 36px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .doc-logo-name { color: white; font-size: 19px; font-weight: 800; letter-spacing: 1px; }
+  .doc-logo-th { color: var(--tan); font-size: 12px; margin-top: 2px; }
+  .doc-addr { color: var(--cream); font-size: 11px; margin-top: 10px; line-height: 1.7; }
+  .doc-title { color: var(--orange); font-size: 26px; font-weight: 800; letter-spacing: 2px; text-align: right; }
+  .doc-sub { color: var(--tan); font-size: 12px; text-align: right; }
+  .doc-badge {
+    display: inline-block; margin-top: 10px;
+    background: rgba(205,95,42,0.2); border: 1px solid var(--orange);
+    border-radius: 7px; padding: 7px 14px; text-align: right;
+  }
+  .doc-badge .lbl2 { color: var(--cream); font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+  .doc-badge .val { color: white; font-weight: 800; font-size: 14px; }
+  .accent-line { height: 4px; background: linear-gradient(90deg, var(--orange) 0%, var(--tan) 60%, var(--cream) 100%); }
+
+  .doc-body { padding: 28px 36px; }
+
+  /* Leave type badge in print */
+  .leave-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-radius: 8px;
+    font-weight: 700; font-size: 15px;
+  }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 24px; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .info-cell { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .info-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .info-cell:nth-child(odd) { border-right: 1px solid var(--border); background: var(--cream-light); }
+  .info-lbl { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-val { font-size: 14px; font-weight: 600; color: var(--navy); }
+
+  .dates-box {
+    background: var(--navy); color: white; border-radius: 10px;
+    padding: 18px 24px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .dates-from, .dates-to { text-align: center; }
+  .dates-lbl { font-size: 10px; color: var(--tan); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .dates-val { font-size: 17px; font-weight: 700; margin-top: 4px; }
+  .dates-arrow { font-size: 24px; color: var(--tan); }
+  .dates-total { text-align: center; }
+  .dates-total .big { font-size: 36px; font-weight: 800; color: var(--orange); line-height: 1; }
+  .dates-total .unit { font-size: 12px; color: var(--cream); margin-top: 2px; }
+
+  .reason-box { background: var(--cream-light); border: 1.5px solid var(--cream); border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+  .reason-lbl { font-size: 10px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .reason-text { font-size: 14px; color: var(--muted); line-height: 1.7; min-height: 40px; }
+
+  .sig-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; padding-top: 24px; border-top: 1.5px solid var(--cream); }
+  .sig-box { text-align: center; }
+  .sig-line { border-bottom: 1.5px solid var(--tan); padding-bottom: 44px; margin-bottom: 8px; }
+  .sig-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .sig-role { font-size: 11px; color: #999; margin-top: 2px; }
+  .sig-date { font-size: 11px; color: #bbb; }
+
+  .doc-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .doc-footer-left { font-size: 11px; color: #bbb; }
+  .doc-footer-right { font-size: 11px; color: var(--orange); font-weight: 700; }
+
+  /* APPROVAL BOX */
+  .approval-box {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 24px;
+  }
+  .approval-title { font-size: 11px; font-weight: 700; color: var(--oxford); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .approval-options { display: flex; gap: 16px; }
+  .approval-option {
+    flex: 1; border: 2px solid var(--border); border-radius: 8px;
+    padding: 12px; text-align: center;
+  }
+  .approval-option.approve { border-color: var(--green); background: var(--green-light); }
+  .approval-option.reject { border-color: var(--red); background: var(--red-light); }
+  .approval-option .ao-icon { font-size: 20px; }
+  .approval-option .ao-text { font-size: 12px; font-weight: 700; margin-top: 4px; }
+  .approval-option.approve .ao-text { color: var(--green); }
+  .approval-option.reject .ao-text { color: var(--red); }
+
+  @media (max-width: 600px) {
+    .leave-type-grid { grid-template-columns: 1fr 1fr; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .span-2 { grid-column: span 1; }
+    #topbar { padding: 12px 16px; }
+    .doc-header { flex-direction: column; gap: 16px; }
+    .doc-title { text-align: left; font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="brand">
+    <div class="brand-icon">S</div>
+    <div>
+      <div class="brand-name">Superior Dental Studio</div>
+      <div class="brand-sub">ระบบใบลา — Leave Request</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost no-print" onclick="showForm()" id="btn-edit" style="display:none">← แก้ไข</button>
+    <button class="btn btn-primary no-print" onclick="showPreview()" id="btn-preview">👁 ดูตัวอย่าง</button>
+    <button class="btn btn-accent no-print" onclick="window.print()" id="btn-print" style="display:none">🖨️ พิมพ์ / PDF</button>
+  </div>
+</div>
+
+<!-- ========== FORM VIEW ========== -->
+<div id="form-view">
+
+  <!-- Doc Info -->
+  <div class="card">
+    <div class="card-title">📋 ข้อมูลใบลา</div>
+    <div class="grid-3">
+      <div>
+        <label class="lbl">เลขที่เอกสาร</label>
+        <input type="text" id="doc-num" class="doc-num" readonly />
+      </div>
+      <div>
+        <label class="lbl">วันที่ยื่นเรื่อง</label>
+        <input type="date" id="submit-date" />
+      </div>
+      <div>
+        <label class="lbl">แผนก / ตำแหน่ง</label>
+        <select id="department">
+          <option>ทันตแพทย์</option>
+          <option>ผู้ช่วยทันตแพทย์</option>
+          <option>เคาน์เตอร์ / Front Desk</option>
+          <option>บัญชี / การเงิน</option>
+          <option>จัดซื้อ</option>
+          <option>อื่นๆ</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Info -->
+  <div class="card">
+    <div class="card-title">👤 ข้อมูลพนักงาน</div>
+    <div class="grid-2">
+      <div>
+        <label class="lbl">ชื่อ-นามสกุล</label>
+        <input type="text" id="emp-name" placeholder="ชื่อ นามสกุล" />
+      </div>
+      <div>
+        <label class="lbl">เบอร์โทรที่ติดต่อได้ระหว่างลา</label>
+        <input type="text" id="emp-phone" placeholder="0xx-xxx-xxxx" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Leave Type -->
+  <div class="card">
+    <div class="card-title">🗂 ประเภทการลา</div>
+    <div class="leave-type-grid">
+      <div class="leave-type-card selected" onclick="selectLeave(this,'ลาป่วย','🤒','ไม่เกิน 30 วัน/ปี')" data-type="ลาป่วย" data-icon="🤒">
+        <div class="icon">🤒</div>
+        <div class="type-name">ลาป่วย</div>
+        <div class="type-quota">ไม่เกิน 30 วัน/ปี</div>
+      </div>
+      <div class="leave-type-card" onclick="selectLeave(this,'ลาพักร้อน','🏖','ไม่เกิน 6 วัน/ปี')" data-type="ลาพักร้อน" data-icon="🏖">
+        <div class="icon">🏖</div>
+        <div class="type-name">ลาพักร้อน</div>
+        <div class="type-quota">ไม่เกิน 6 วัน/ปี</div>
+      </div>
+      <div class="leave-type-card" onclick="selectLeave(this,'ลากิจ','📋','ไม่เกิน 3 วัน/ปี')" data-type="ลากิจ" data-icon="📋">
+        <div class="icon">📋</div>
+        <div class="type-name">ลากิจ</div>
+        <div class="type-quota">ไม่เกิน 3 วัน/ปี</div>
+      </div>
+      <div class="leave-type-card" onclick="selectLeave(this,'ลาคลอด','👶','ไม่เกิน 98 วัน')" data-type="ลาคลอด" data-icon="👶">
+        <div class="icon">👶</div>
+        <div class="type-name">ลาคลอด</div>
+        <div class="type-quota">ไม่เกิน 98 วัน</div>
+      </div>
+    </div>
+    <input type="hidden" id="leave-type" value="ลาป่วย" />
+    <input type="hidden" id="leave-icon" value="🤒" />
+  </div>
+
+  <!-- Dates -->
+  <div class="card">
+    <div class="card-title">📅 วันที่ลา</div>
+    <div class="grid-2">
+      <div>
+        <label class="lbl">วันที่เริ่มลา</label>
+        <input type="date" id="start-date" onchange="calcDays()" />
+      </div>
+      <div>
+        <label class="lbl">วันที่กลับมาทำงาน</label>
+        <input type="date" id="end-date" onchange="calcDays()" />
+      </div>
+    </div>
+
+    <div class="half-day-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="half-day" onchange="calcDays()" />
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="half-day-label">ลาครึ่งวัน</span>
+      <select id="half-day-period" style="width:auto;flex:1;max-width:160px">
+        <option>ช่วงเช้า</option>
+        <option>ช่วงบ่าย</option>
+      </select>
+    </div>
+
+    <div class="day-count-badge">
+      <div>
+        <div class="day-count-label">จำนวนวันที่ขอลา</div>
+        <div style="font-size:11px;color:var(--tan);margin-top:2px" id="date-range-text">—</div>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:6px">
+        <div class="day-count-num" id="day-count">0</div>
+        <div class="day-count-unit">วัน</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reason -->
+  <div class="card">
+    <div class="card-title">📝 เหตุผลและรายละเอียด</div>
+    <div style="margin-bottom:14px">
+      <label class="lbl">เหตุผลในการลา</label>
+      <textarea id="reason" rows="3" placeholder="ระบุเหตุผลในการลา..." style="resize:vertical"></textarea>
+    </div>
+    <div class="grid-2">
+      <div>
+        <label class="lbl">ผู้รับมอบหมายงานแทน</label>
+        <input type="text" id="delegate" placeholder="ชื่อพนักงานที่รับงานแทน" />
+      </div>
+      <div>
+        <label class="lbl">ผู้บังคับบัญชาที่ยื่นถึง</label>
+        <input type="text" id="supervisor" placeholder="ชื่อผู้อนุมัติ" />
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end">
+    <button class="btn btn-primary" onclick="showPreview()">👁 ดูตัวอย่างก่อนพิมพ์ →</button>
+  </div>
+</div>
+
+<!-- ========== PRINT VIEW ========== -->
+<div id="print-view">
+  <div class="po-doc">
+
+    <div class="doc-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div class="brand-icon" style="width:42px;height:42px;font-size:20px">S</div>
+          <div>
+            <div class="doc-logo-name">SUPERIOR DENTAL STUDIO</div>
+            <div class="doc-logo-th">คลินิกทันตกรรม ซูพีเรียร์ เดนทัล สตูดิโอ</div>
+          </div>
+        </div>
+        <div class="doc-addr">📍 โครงการมหาโชคปาร์ค เชียงใหม่<br>📞 062-240-9782</div>
+      </div>
+      <div>
+        <div class="doc-title">LEAVE REQUEST</div>
+        <div class="doc-sub">ใบขออนุญาตลา</div>
+        <div style="text-align:right">
+          <div class="doc-badge">
+            <div class="lbl2">เลขที่</div>
+            <div class="val" id="p-docnum">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accent-line"></div>
+
+    <div class="doc-body">
+
+      <!-- Leave type badge -->
+      <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+        <div class="leave-badge" id="p-leave-badge" style="background:#fef4ee;color:var(--orange);border:2px solid var(--orange)">
+          <span id="p-leave-icon">🤒</span>
+          <span id="p-leave-type">ลาป่วย</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted)">วันที่ยื่น: <strong id="p-submit-date">—</strong></div>
+      </div>
+
+      <!-- Employee info -->
+      <div class="info-grid" style="margin-bottom:20px">
+        <div class="info-cell">
+          <div class="info-lbl">ชื่อ-นามสกุล</div>
+          <div class="info-val" id="p-empname">—</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-lbl">แผนก / ตำแหน่ง</div>
+          <div class="info-val" id="p-dept">—</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-lbl">เบอร์ติดต่อระหว่างลา</div>
+          <div class="info-val" id="p-phone">—</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-lbl">ผู้รับมอบหมายงานแทน</div>
+          <div class="info-val" id="p-delegate">—</div>
+        </div>
+      </div>
+
+      <!-- Date range -->
+      <div class="dates-box">
+        <div class="dates-from">
+          <div class="dates-lbl">วันที่เริ่มลา</div>
+          <div class="dates-val" id="p-start">—</div>
+        </div>
+        <div class="dates-arrow">→</div>
+        <div class="dates-to">
+          <div class="dates-lbl">วันที่กลับมาทำงาน</div>
+          <div class="dates-val" id="p-end">—</div>
+        </div>
+        <div class="dates-arrow">|</div>
+        <div class="dates-total">
+          <div class="big" id="p-days">0</div>
+          <div class="unit">วัน</div>
+          <div class="unit" id="p-half-label"></div>
+        </div>
+      </div>
+
+      <!-- Reason -->
+      <div class="reason-box">
+        <div class="reason-lbl">เหตุผลในการลา</div>
+        <div class="reason-text" id="p-reason">—</div>
+      </div>
+
+      <!-- Approval box -->
+      <div class="approval-box">
+        <div class="approval-title">สำหรับผู้อนุมัติ</div>
+        <div class="approval-options">
+          <div class="approval-option approve">
+            <div class="ao-icon">✅</div>
+            <div class="ao-text">อนุมัติ</div>
+            <div style="font-size:11px;color:var(--green);margin-top:4px">Approved</div>
+          </div>
+          <div class="approval-option reject">
+            <div class="ao-icon">❌</div>
+            <div class="ao-text">ไม่อนุมัติ</div>
+            <div style="font-size:11px;color:var(--red);margin-top:4px">Rejected</div>
+          </div>
+          <div class="approval-option" style="flex:2">
+            <div class="ao-icon">💬</div>
+            <div class="ao-text" style="color:var(--muted)">หมายเหตุผู้อนุมัติ</div>
+            <div style="border-bottom:1px solid var(--border);margin-top:16px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div class="sig-row">
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-name" id="p-empname2">............................................</div>
+          <div class="sig-role">ผู้ขอลา</div>
+          <div class="sig-date">วันที่ ........../........../.........</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-name" id="p-delegate2">............................................</div>
+          <div class="sig-role">ผู้รับมอบหมายงาน</div>
+          <div class="sig-date">วันที่ ........../........../.........</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-name" id="p-supervisor">............................................</div>
+          <div class="sig-role">ผู้อนุมัติ</div>
+          <div class="sig-date">วันที่ ........../........../.........</div>
+        </div>
+      </div>
+
+      <div class="doc-footer">
+        <div class="doc-footer-left" id="p-footer">เอกสารนี้ออกโดยระบบ Superior Dental Studio</div>
+        <div class="doc-footer-right">Superior Dental Studio</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Init
+function init() {
+  const now = new Date();
+  const y = String(now.getFullYear()).slice(-2);
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  const rand = String(Math.floor(Math.random()*1000)).padStart(3,'0');
+  document.getElementById('doc-num').value = `SDS-LV-${y}${m}${d}-${rand}`;
+  document.getElementById('submit-date').value = now.toISOString().split('T')[0];
+}
+
+// Leave type selection
+function selectLeave(el, type, icon, quota) {
+  document.querySelectorAll('.leave-type-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('leave-type').value = type;
+  document.getElementById('leave-icon').value = icon;
+}
+
+// Calculate days (exclude weekends)
+function calcDays() {
+  const start = document.getElementById('start-date').value;
+  const end = document.getElementById('end-date').value;
+  const isHalf = document.getElementById('half-day').checked;
+
+  if (!start) return;
+
+  let days = 0;
+  const endDate = end ? new Date(end + 'T00:00:00') : new Date(start + 'T00:00:00');
+  const startDate = new Date(start + 'T00:00:00');
+
+  if (endDate < startDate) {
+    document.getElementById('end-date').value = start;
+    calcDays(); return;
+  }
+
+  let cur = new Date(startDate);
+  while (cur <= endDate) {
+    const dow = cur.getDay();
+    if (dow !== 0 && dow !== 6) days++;
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  if (isHalf) days = Math.max(days - 0.5, 0.5);
+
+  document.getElementById('day-count').textContent = days % 1 === 0 ? days : days.toFixed(1);
+
+  const opts = { year: 'numeric', month: 'short', day: 'numeric' };
+  const startStr = startDate.toLocaleDateString('th-TH', opts);
+  const endStr = endDate.toLocaleDateString('th-TH', opts);
+  document.getElementById('date-range-text').textContent =
+    start === end || !end ? startStr : `${startStr} — ${endStr}`;
+}
+
+// Format date Thai
+function fmtDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  if (isNaN(d)) return '—';
+  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// Show preview
+function showPreview() {
+  const docNum = document.getElementById('doc-num').value;
+  const empName = document.getElementById('emp-name').value || '—';
+  const dept = document.getElementById('department').value;
+  const phone = document.getElementById('emp-phone').value || '—';
+  const leaveType = document.getElementById('leave-type').value;
+  const leaveIcon = document.getElementById('leave-icon').value;
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+  const isHalf = document.getElementById('half-day').checked;
+  const halfPeriod = document.getElementById('half-day-period').value;
+  const reason = document.getElementById('reason').value || '—';
+  const delegate = document.getElementById('delegate').value || '—';
+  const supervisor = document.getElementById('supervisor').value || '—';
+  const days = document.getElementById('day-count').textContent;
+
+  document.getElementById('p-docnum').textContent = docNum;
+  document.getElementById('p-submit-date').textContent = fmtDate(document.getElementById('submit-date').value);
+  document.getElementById('p-empname').textContent = empName;
+  document.getElementById('p-empname2').textContent = empName;
+  document.getElementById('p-dept').textContent = dept;
+  document.getElementById('p-phone').textContent = phone;
+  document.getElementById('p-leave-type').textContent = leaveType;
+  document.getElementById('p-leave-icon').textContent = leaveIcon;
+  document.getElementById('p-start').textContent = fmtDate(startDate);
+  document.getElementById('p-end').textContent = endDate ? fmtDate(endDate) : fmtDate(startDate);
+  document.getElementById('p-days').textContent = days || '0';
+  document.getElementById('p-half-label').textContent = isHalf ? `(${halfPeriod})` : '';
+  document.getElementById('p-reason').textContent = reason;
+  document.getElementById('p-delegate').textContent = delegate;
+  document.getElementById('p-delegate2').textContent = delegate;
+  document.getElementById('p-supervisor').textContent = supervisor;
+  document.getElementById('p-footer').textContent = `เอกสารนี้ออกโดยระบบ Superior Dental Studio | ${docNum}`;
+
+  document.getElementById('form-view').style.display = 'none';
+  document.getElementById('print-view').classList.add('visible');
+  document.getElementById('btn-edit').style.display = 'flex';
+  document.getElementById('btn-preview').style.display = 'none';
+  document.getElementById('btn-print').style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showForm() {
+  document.getElementById('form-view').style.display = 'block';
+  document.getElementById('print-view').classList.remove('visible');
+  document.getElementById('btn-edit').style.display = 'none';
+  document.getElementById('btn-preview').style.display = 'flex';
+  document.getElementById('btn-print').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+init();
+</script>
+</body>
+</html>

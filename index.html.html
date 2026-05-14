@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SDS — ใบสั่งซื้อ (Purchase Order)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #202842;
+    --oxford: #323c60;
+    --orange: #cd5f2a;
+    --tan: #bea27f;
+    --cream: #e5d8c4;
+    --cream-light: #f7f4ef;
+    --bg: #f0ece4;
+    --white: #ffffff;
+    --text: #202842;
+    --muted: #6b6456;
+    --border: #ddd7cc;
+  }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ===== TOP BAR ===== */
+  #topbar {
+    background: var(--navy);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-icon {
+    width: 38px; height: 38px;
+    background: var(--orange);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800; color: white;
+    flex-shrink: 0;
+  }
+  .brand-name { color: white; font-weight: 700; font-size: 16px; line-height: 1.2; }
+  .brand-sub { color: var(--tan); font-size: 11px; }
+  .topbar-actions { display: flex; gap: 10px; }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px; font-weight: 600;
+    padding: 9px 22px;
+    border-radius: 7px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--oxford); color: white; }
+  .btn-primary:hover { background: #404e7a; }
+  .btn-accent { background: var(--orange); color: white; }
+  .btn-accent:hover { background: #b55224; }
+  .btn-ghost { background: transparent; border: 1.5px solid rgba(229,216,196,0.5); color: var(--cream); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .btn-danger { background: #fde8e0; color: var(--orange); border: 1px solid #f5c6b0; }
+  .btn-danger:hover { background: var(--orange); color: white; }
+  .btn-dashed {
+    background: var(--cream-light);
+    border: 1.5px dashed var(--tan);
+    color: var(--oxford);
+    width: 100%; padding: 10px;
+    border-radius: 7px; cursor: pointer;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px; font-weight: 600;
+    transition: all 0.18s;
+  }
+  .btn-dashed:hover { background: var(--cream); border-color: var(--orange); color: var(--orange); }
+
+  /* ===== FORM LAYOUT ===== */
+  #form-view { max-width: 880px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 6px rgba(32,40,66,0.06);
+  }
+  .card-title {
+    font-size: 11px; font-weight: 700;
+    color: var(--orange);
+    text-transform: uppercase; letter-spacing: 1.2px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid var(--cream);
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .span-2 { grid-column: span 2; }
+
+  label.lbl {
+    display: block;
+    font-size: 11px; font-weight: 700;
+    color: var(--oxford);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin-bottom: 5px;
+  }
+  input, select, textarea {
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px; color: var(--text);
+    width: 100%;
+    padding: 9px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: white;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(205,95,42,0.12);
+  }
+  input[readonly] { background: var(--cream-light); cursor: default; }
+  input.po-num { font-weight: 800; color: var(--orange); font-size: 15px; }
+
+  /* ===== ITEMS TABLE ===== */
+  .item-head, .item-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 90px 120px 100px 38px;
+    gap: 8px;
+    align-items: center;
+  }
+  .item-head { margin-bottom: 6px; }
+  .item-head span {
+    font-size: 10px; font-weight: 700;
+    color: var(--oxford); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .item-head span.right, .amt { text-align: right; }
+  .item-row { margin-bottom: 8px; }
+  .item-amt {
+    text-align: right; font-weight: 600;
+    font-size: 14px; color: var(--navy);
+    padding: 0 4px;
+  }
+  .remove-btn {
+    width: 34px; height: 34px;
+    border-radius: 7px; border: none;
+    cursor: pointer; font-size: 16px; font-weight: 700;
+    background: #fde8e0; color: var(--orange);
+    transition: all 0.15s;
+  }
+  .remove-btn:hover { background: var(--orange); color: white; }
+  .remove-btn:disabled { background: #f0f0f0; color: #ccc; cursor: not-allowed; }
+
+  /* ===== TOTALS ===== */
+  .totals-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
+  .totals-box { min-width: 280px; }
+  .total-row {
+    display: flex; justify-content: space-between;
+    padding: 7px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px; color: var(--muted);
+  }
+  .total-final {
+    display: flex; justify-content: space-between;
+    background: var(--navy); color: white;
+    padding: 12px 16px; border-radius: 8px;
+    margin-top: 10px; font-weight: 700; font-size: 17px;
+  }
+
+  /* ===== BANK BADGE ===== */
+  .bank-badge {
+    background: #fffdf9;
+    border: 1.5px solid var(--cream);
+    border-radius: 8px; padding: 14px;
+    font-size: 13px;
+  }
+  .bank-badge .bank-name { font-weight: 700; color: var(--navy); font-size: 14px; }
+  .bank-badge .bank-acc { font-size: 20px; font-weight: 800; color: var(--oxford); letter-spacing: 2px; margin: 5px 0; }
+  .bank-badge .bank-holder { color: var(--muted); font-size: 12px; }
+  .bank-warn {
+    margin-top: 8px; background: #fde8e0;
+    border-radius: 6px; padding: 6px 10px;
+    font-size: 11px; color: var(--orange); font-weight: 600;
+  }
+
+  /* ===== PRINT / PREVIEW ===== */
+  #print-view { display: none; }
+
+  @media print {
+    #topbar, #form-view, .no-print { display: none !important; }
+    #print-view {
+      display: block !important;
+      margin: 0; padding: 0;
+    }
+    body { background: white !important; }
+    .po-doc { box-shadow: none !important; border-radius: 0 !important; }
+  }
+
+  /* Preview visible on screen */
+  #print-view.visible {
+    display: block;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+
+  .po-doc {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(32,40,66,0.12);
+    overflow: hidden;
+  }
+
+  /* Doc header */
+  .doc-header {
+    background: var(--navy);
+    padding: 28px 36px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .doc-logo-name { color: white; font-size: 19px; font-weight: 800; letter-spacing: 1px; }
+  .doc-logo-th { color: var(--tan); font-size: 12px; margin-top: 2px; }
+  .doc-addr { color: var(--cream); font-size: 11px; margin-top: 10px; line-height: 1.7; }
+  .doc-po-title { color: var(--orange); font-size: 26px; font-weight: 800; letter-spacing: 2px; text-align: right; }
+  .doc-po-sub { color: var(--tan); font-size: 12px; text-align: right; }
+  .doc-po-badge {
+    display: inline-block; margin-top: 10px;
+    background: rgba(205,95,42,0.2);
+    border: 1px solid var(--orange);
+    border-radius: 7px; padding: 7px 14px; text-align: right;
+  }
+  .doc-po-badge .lbl2 { color: var(--cream); font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+  .doc-po-badge .val { color: white; font-weight: 800; font-size: 14px; }
+
+  /* Accent line */
+  .accent-line {
+    height: 4px;
+    background: linear-gradient(90deg, var(--orange) 0%, var(--tan) 60%, var(--cream) 100%);
+  }
+
+  /* Doc body */
+  .doc-body { padding: 28px 36px; }
+
+  .meta-bar {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px; margin-bottom: 24px;
+    background: var(--cream-light);
+    border-radius: 8px; padding: 16px;
+  }
+  .meta-item .meta-lbl { font-size: 10px; color: #9e9589; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .meta-item .meta-val { font-size: 14px; font-weight: 600; color: var(--navy); margin-top: 2px; }
+
+  .doc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .doc-box {
+    border: 1.5px solid var(--cream);
+    border-radius: 8px; padding: 16px;
+  }
+  .doc-box-title {
+    font-size: 10px; font-weight: 700;
+    color: var(--orange); text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  /* PO Table */
+  .po-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .po-table thead tr { background: var(--navy); }
+  .po-table thead th {
+    padding: 10px 12px; color: white;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.5px; text-align: left;
+  }
+  .po-table thead th.r { text-align: right; }
+  .po-table tbody tr:nth-child(even) { background: #faf8f5; }
+  .po-table tbody tr { border-bottom: 1px solid var(--border); }
+  .po-table tbody td { padding: 10px 12px; font-size: 13px; color: var(--text); }
+  .po-table tbody td.r { text-align: right; font-weight: 600; }
+  .po-table tbody td.num { text-align: right; }
+  .po-table tbody td.idx { color: #aaa; font-size: 12px; }
+
+  /* Note box */
+  .note-box {
+    background: #fffdf9;
+    border: 1.5px solid var(--cream);
+    border-radius: 8px; padding: 14px; margin-bottom: 24px;
+  }
+  .note-box .note-title { font-size: 10px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .note-box .note-text { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  /* Signatures */
+  .sig-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; padding-top: 24px; border-top: 1.5px solid var(--cream); }
+  .sig-box { text-align: center; }
+  .sig-line { border-bottom: 1.5px solid var(--tan); padding-bottom: 44px; margin-bottom: 8px; }
+  .sig-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .sig-role { font-size: 11px; color: #999; margin-top: 2px; }
+  .sig-date { font-size: 11px; color: #bbb; }
+
+  /* Doc footer */
+  .doc-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 24px; padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .doc-footer-left { font-size: 11px; color: #bbb; }
+  .doc-footer-right { font-size: 11px; color: var(--orange); font-weight: 700; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 640px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .span-2 { grid-column: span 1; }
+    .item-head, .item-row { grid-template-columns: 1fr 60px 80px 38px; }
+    .item-head span:nth-child(3),
+    .item-head span:nth-child(4),
+    .item-row > *:nth-child(3),
+    .item-row > *:nth-child(4) { display: none; }
+    #topbar { padding: 12px 16px; }
+    #form-view { padding: 16px 12px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="brand">
+    <div class="brand-icon">S</div>
+    <div>
+      <div class="brand-name">Superior Dental Studio</div>
+      <div class="brand-sub">ระบบใบสั่งซื้อ — Purchase Order</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost no-print" onclick="showForm()" id="btn-edit" style="display:none">← แก้ไข</button>
+    <button class="btn btn-primary no-print" onclick="showPreview()" id="btn-preview">👁 ดูตัวอย่าง</button>
+    <button class="btn btn-accent no-print" onclick="window.print()" id="btn-print" style="display:none">🖨️ พิมพ์ / PDF</button>
+  </div>
+</div>
+
+<!-- ==================== FORM VIEW ==================== -->
+<div id="form-view">
+
+  <!-- PO Info -->
+  <div class="card">
+    <div class="card-title">📋 ข้อมูลใบสั่งซื้อ</div>
+    <div class="grid-3">
+      <div>
+        <label class="lbl">เลขที่ PO</label>
+        <input type="text" id="po-num" class="po-num" readonly />
+      </div>
+      <div>
+        <label class="lbl">วันที่ออก PO</label>
+        <input type="date" id="po-date" />
+      </div>
+      <div>
+        <label class="lbl">กำหนดส่งสินค้า</label>
+        <input type="date" id="due-date" />
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:14px">
+      <div>
+        <label class="lbl">ประเภทสินค้า</label>
+        <select id="category">
+          <option>อุปกรณ์ทันตกรรม</option>
+          <option>วัสดุสิ้นเปลือง</option>
+          <option>ทั้งสองอย่าง</option>
+          <option>เวชภัณฑ์</option>
+          <option>อุปกรณ์สำนักงาน</option>
+          <option>อื่นๆ</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:18px;padding-top:18px;border-top:1.5px solid var(--cream)">
+      <div class="card-title" style="margin-bottom:12px;border-bottom:none;padding-bottom:0">💳 บัญชีธนาคารที่ต้องการรับชำระ</div>
+      <div class="grid-3">
+        <div>
+          <label class="lbl">ธนาคาร</label>
+          <select id="bank-name">
+            <option>กสิกรไทย (KBank)</option>
+            <option>ไทยพาณิชย์ (SCB)</option>
+            <option>กรุงเทพ (BBL)</option>
+            <option>กรุงไทย (KTB)</option>
+            <option>ทหารไทยธนชาต (TTB)</option>
+            <option>ออมสิน (GSB)</option>
+            <option>อื่นๆ</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">เลขที่บัญชี</label>
+          <input type="text" id="bank-acc" placeholder="000-0-00000-0" />
+        </div>
+        <div>
+          <label class="lbl">ชื่อบัญชี</label>
+          <input type="text" id="bank-holder" placeholder="ชื่อเจ้าของบัญชี" value="บริษัท ซูพีเรียร์ เดนทัล สตูดิโอ จำกัด" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supplier -->
+  <div class="card">
+    <div class="card-title">🏢 ข้อมูลผู้จำหน่าย (Vendor)</div>
+    <div class="grid-2">
+      <div>
+        <label class="lbl">ชื่อบริษัท / ร้านค้า</label>
+        <input type="text" id="v-name" placeholder="บริษัท ABC จำกัด" />
+      </div>
+      <div>
+        <label class="lbl">ชื่อผู้ติดต่อ</label>
+        <input type="text" id="v-contact" placeholder="คุณ..." />
+      </div>
+      <div class="span-2">
+        <label class="lbl">ที่อยู่</label>
+        <input type="text" id="v-address" placeholder="ที่อยู่ผู้จำหน่าย" />
+      </div>
+      <div>
+        <label class="lbl">เบอร์โทรศัพท์</label>
+        <input type="text" id="v-phone" placeholder="0xx-xxx-xxxx" />
+      </div>
+      <div>
+        <label class="lbl">เลขประจำตัวผู้เสียภาษี</label>
+        <input type="text" id="v-tax" placeholder="xxxxxxxxxxxxx" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div class="card">
+    <div class="card-title">📦 รายการสินค้า / อุปกรณ์</div>
+    <div class="item-head">
+      <span>รายละเอียดสินค้า</span>
+      <span>หน่วย</span>
+      <span class="right">จำนวน</span>
+      <span class="right">ราคา/หน่วย (฿)</span>
+      <span class="right">รวม (฿)</span>
+      <span></span>
+    </div>
+    <div id="items-container"></div>
+    <button class="btn-dashed" onclick="addItem()">+ เพิ่มรายการสินค้า</button>
+
+    <div class="totals-wrap">
+      <div class="totals-box">
+        <div class="total-row"><span>ยอดรวมก่อนภาษี</span><span id="t-sub">0.00 บาท</span></div>
+        <div class="total-row"><span>ภาษีมูลค่าเพิ่ม 7%</span><span id="t-vat">0.00 บาท</span></div>
+        <div class="total-final"><span>ยอดรวมสุทธิ</span><span id="t-total">0.00 บาท</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Note & Approval -->
+  <div class="card">
+    <div class="card-title">📝 หมายเหตุและผู้อนุมัติ</div>
+    <div style="margin-bottom:14px">
+      <label class="lbl">หมายเหตุ / เงื่อนไขพิเศษ</label>
+      <textarea id="note" rows="3" placeholder="เช่น ส่งของภายใน 7 วัน, ห้ามส่งสินค้าหมดอายุ, ชำระเงินภายใน 30 วัน..." style="resize:vertical"></textarea>
+    </div>
+    <div class="grid-2">
+      <div>
+        <label class="lbl">ผู้ขอสั่งซื้อ</label>
+        <input type="text" id="req-by" placeholder="ชื่อ-นามสกุล" />
+      </div>
+      <div>
+        <label class="lbl">ผู้อนุมัติ</label>
+        <input type="text" id="apv-by" placeholder="ชื่อ-นามสกุล" />
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:12px">
+    <button class="btn btn-primary" onclick="showPreview()">👁 ดูตัวอย่างก่อนพิมพ์ →</button>
+  </div>
+</div>
+
+<!-- ==================== PRINT VIEW ==================== -->
+<div id="print-view">
+  <div class="po-doc">
+
+    <!-- Doc Header -->
+    <div class="doc-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div class="brand-icon" style="width:42px;height:42px;font-size:20px">S</div>
+          <div>
+            <div class="doc-logo-name">SUPERIOR DENTAL STUDIO</div>
+            <div class="doc-logo-th">คลินิกทันตกรรม ซูพีเรียร์ เดนทัล สตูดิโอ</div>
+          </div>
+        </div>
+        <div class="doc-addr">
+          📍 โครงการมหาโชคปาร์ค เชียงใหม่<br>
+          📞 062-240-9782 &nbsp;|&nbsp; เลขภาษี: xxxxxxxxxxxxx
+        </div>
+      </div>
+      <div>
+        <div class="doc-po-title">PURCHASE ORDER</div>
+        <div class="doc-po-sub">ใบสั่งซื้อ</div>
+        <div style="text-align:right">
+          <div class="doc-po-badge">
+            <div class="lbl2">เลขที่</div>
+            <div class="val" id="p-ponum">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accent-line"></div>
+
+    <div class="doc-body">
+
+      <!-- Meta bar -->
+      <div class="meta-bar">
+        <div class="meta-item">
+          <div class="meta-lbl">วันที่ออก PO</div>
+          <div class="meta-val" id="p-date">—</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-lbl">กำหนดส่งสินค้า</div>
+          <div class="meta-val" id="p-due">—</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-lbl">ประเภทสินค้า</div>
+          <div class="meta-val" id="p-cat">—</div>
+        </div>
+      </div>
+
+      <!-- Vendor + Bank -->
+      <div class="doc-cols">
+        <div class="doc-box">
+          <div class="doc-box-title">🏢 ผู้จำหน่าย (Vendor)</div>
+          <div style="font-weight:700;font-size:15px;color:var(--navy)" id="p-vname">—</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px" id="p-vcontact"></div>
+          <div style="font-size:12px;color:#888;margin-top:4px" id="p-vaddress"></div>
+          <div style="font-size:12px;color:#888;margin-top:2px" id="p-vphone"></div>
+          <div style="font-size:12px;color:#888" id="p-vtax"></div>
+        </div>
+        <div class="doc-box bank-badge">
+          <div class="doc-box-title">💳 ข้อมูลการชำระเงิน</div>
+          <div class="bank-name" id="p-bname">—</div>
+          <div class="bank-acc" id="p-bacc">—</div>
+          <div class="bank-holder" id="p-bholder">—</div>
+          <div class="bank-warn">⚠️ กรุณาแนบสลิปโอนเงินทุกครั้ง</div>
+        </div>
+      </div>
+
+      <!-- Items table -->
+      <table class="po-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>รายละเอียดสินค้า / อุปกรณ์</th>
+            <th>หน่วย</th>
+            <th class="r">จำนวน</th>
+            <th class="r">ราคา/หน่วย (฿)</th>
+            <th class="r">รวม (฿)</th>
+          </tr>
+        </thead>
+        <tbody id="p-items"></tbody>
+      </table>
+
+      <!-- Totals -->
+      <div class="totals-wrap">
+        <div class="totals-box">
+          <div class="total-row"><span>ยอดรวมก่อนภาษี (Subtotal)</span><span id="p-sub">—</span></div>
+          <div class="total-row"><span>ภาษีมูลค่าเพิ่ม 7% (VAT)</span><span id="p-vat">—</span></div>
+          <div class="total-final"><span>ยอดรวมสุทธิ</span><span id="p-total">—</span></div>
+        </div>
+      </div>
+
+      <!-- Note -->
+      <div class="note-box" id="p-note-box" style="margin-top:20px;display:none">
+        <div class="note-title">หมายเหตุ</div>
+        <div class="note-text" id="p-note"></div>
+      </div>
+
+      <!-- Signatures -->
+      <div class="sig-row">
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-name" id="p-req">............................................</div>
+          <div class="sig-role">ผู้ขอสั่งซื้อ</div>
+          <div class="sig-date">วันที่ ........../........../.........</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-name">............................................</div>
+          <div class="sig-role">ผู้ตรวจสอบ</div>
+          <div class="sig-date">วันที่ ........../........../.........</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <div class="sig-name" id="p-apv">............................................</div>
+          <div class="sig-role">ผู้อนุมัติ</div>
+          <div class="sig-date">วันที่ ........../........../.........</div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="doc-footer">
+        <div class="doc-footer-left" id="p-footer-left">เอกสารนี้ออกโดยระบบ Superior Dental Studio</div>
+        <div class="doc-footer-right">Superior Dental Studio</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+// Bank info collected from form inputs directly
+
+let itemCount = 0;
+
+// ===== INIT =====
+function init() {
+  // PO Number
+  const now = new Date();
+  const y = String(now.getFullYear()).slice(-2);
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  const rand = String(Math.floor(Math.random()*1000)).padStart(3,'0');
+  document.getElementById('po-num').value = `SDS-PO-${y}${m}${d}-${rand}`;
+
+  // Today date
+  document.getElementById('po-date').value = now.toISOString().split('T')[0];
+
+  // First item
+  addItem();
+}
+
+// ===== ITEMS =====
+function addItem() {
+  itemCount++;
+  const id = itemCount;
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.id = `item-${id}`;
+  row.innerHTML = `
+    <input type="text" placeholder="รายการที่ ${id}" oninput="calcTotals()" />
+    <select onchange="calcTotals()">
+      <option>ชิ้น</option><option>กล่อง</option><option>แผ่น</option>
+      <option>หลอด</option><option>ชุด</option><option>อัน</option>
+      <option>ขวด</option><option>ถุง</option><option>แพ็ค</option>
+    </select>
+    <input type="number" min="0" value="1" style="text-align:right" oninput="calcTotals()" class="qty" />
+    <input type="number" min="0" value="0" style="text-align:right" oninput="calcTotals()" class="price" />
+    <div class="item-amt" id="amt-${id}">0.00</div>
+    <button class="remove-btn" onclick="removeItem(${id})" title="ลบรายการ">×</button>
+  `;
+  document.getElementById('items-container').appendChild(row);
+  calcTotals();
+  updateRemoveBtns();
+}
+
+function removeItem(id) {
+  const el = document.getElementById(`item-${id}`);
+  if (el) el.remove();
+  calcTotals();
+  updateRemoveBtns();
+}
+
+function updateRemoveBtns() {
+  const rows = document.querySelectorAll('#items-container .item-row');
+  rows.forEach(r => {
+    r.querySelector('.remove-btn').disabled = rows.length === 1;
+  });
+}
+
+function calcTotals() {
+  let sub = 0;
+  const rows = document.querySelectorAll('#items-container .item-row');
+  rows.forEach((row, idx) => {
+    const qty = parseFloat(row.querySelector('.qty').value) || 0;
+    const price = parseFloat(row.querySelector('.price').value) || 0;
+    const amt = qty * price;
+    sub += amt;
+    // find amt div — it's the 5th child
+    const amtDiv = row.querySelector('.item-amt');
+    if (amtDiv) amtDiv.textContent = fmt(amt);
+  });
+  const vat = sub * 0.07;
+  const total = sub + vat;
+  document.getElementById('t-sub').textContent = fmt(sub) + ' บาท';
+  document.getElementById('t-vat').textContent = fmt(vat) + ' บาท';
+  document.getElementById('t-total').textContent = fmt(total) + ' บาท';
+}
+
+// ===== FORMAT =====
+function fmt(n) {
+  return Number(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  if (isNaN(d)) return '—';
+  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// ===== VIEWS =====
+function showPreview() {
+  // Collect data
+  const bank = {
+    bank: document.getElementById('bank-name').value,
+    acc: document.getElementById('bank-acc').value || '—',
+    holder: document.getElementById('bank-holder').value || '—'
+  };
+  const rows = document.querySelectorAll('#items-container .item-row');
+  const note = document.getElementById('note').value.trim();
+
+  // Fill print view
+  document.getElementById('p-ponum').textContent = document.getElementById('po-num').value;
+  document.getElementById('p-date').textContent = fmtDate(document.getElementById('po-date').value);
+  document.getElementById('p-due').textContent = fmtDate(document.getElementById('due-date').value);
+  document.getElementById('p-cat').textContent = document.getElementById('category').value;
+
+  // Vendor
+  const setTxt = (id, val, prefix='') => {
+    const el = document.getElementById(id);
+    el.textContent = val ? (prefix + val) : '';
+  };
+  document.getElementById('p-vname').textContent = document.getElementById('v-name').value || '—';
+  setTxt('p-vcontact', document.getElementById('v-contact').value);
+  setTxt('p-vaddress', document.getElementById('v-address').value);
+  setTxt('p-vphone', document.getElementById('v-phone').value, 'โทร: ');
+  setTxt('p-vtax', document.getElementById('v-tax').value, 'เลขภาษี: ');
+
+  // Bank
+  document.getElementById('p-bname').textContent = bank.bank;
+  document.getElementById('p-bacc').textContent = bank.acc;
+  document.getElementById('p-bholder').textContent = 'ชื่อบัญชี: ' + bank.holder;
+
+  // Items table
+  const tbody = document.getElementById('p-items');
+  tbody.innerHTML = '';
+  let sub = 0;
+  rows.forEach((row, idx) => {
+    const desc = row.querySelector('input[type=text]').value || '—';
+    const unit = row.querySelector('select').value;
+    const qty = parseFloat(row.querySelector('.qty').value) || 0;
+    const price = parseFloat(row.querySelector('.price').value) || 0;
+    const amt = qty * price;
+    sub += amt;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="idx">${idx+1}</td>
+      <td>${desc}</td>
+      <td>${unit}</td>
+      <td class="num">${qty.toLocaleString()}</td>
+      <td class="num">${fmt(price)}</td>
+      <td class="r">${fmt(amt)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const vat = sub * 0.07;
+  document.getElementById('p-sub').textContent = fmt(sub) + ' บาท';
+  document.getElementById('p-vat').textContent = fmt(vat) + ' บาท';
+  document.getElementById('p-total').textContent = fmt(sub + vat) + ' บาท';
+
+  // Note
+  if (note) {
+    document.getElementById('p-note-box').style.display = 'block';
+    document.getElementById('p-note').textContent = note;
+  } else {
+    document.getElementById('p-note-box').style.display = 'none';
+  }
+
+  // Signatures
+  const req = document.getElementById('req-by').value;
+  const apv = document.getElementById('apv-by').value;
+  document.getElementById('p-req').textContent = req || '............................................';
+  document.getElementById('p-apv').textContent = apv || '............................................';
+
+  // Footer
+  document.getElementById('p-footer-left').textContent =
+    `เอกสารนี้ออกโดยระบบ Superior Dental Studio | ${document.getElementById('po-num').value}`;
+
+  // Toggle
+  document.getElementById('form-view').style.display = 'none';
+  document.getElementById('print-view').classList.add('visible');
+  document.getElementById('btn-edit').style.display = 'flex';
+  document.getElementById('btn-preview').style.display = 'none';
+  document.getElementById('btn-print').style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showForm() {
+  document.getElementById('form-view').style.display = 'block';
+  document.getElementById('print-view').classList.remove('visible');
+  document.getElementById('btn-edit').style.display = 'none';
+  document.getElementById('btn-preview').style.display = 'flex';
+  document.getElementById('btn-print').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Start
+init();
+</script>
+</body>
+</html>
